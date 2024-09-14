@@ -17,4 +17,5 @@ public class Herb {
     private List<Season> seasons;
     private String benefits;
     private List<Location> locations;
+    private String imageUrl;
 }

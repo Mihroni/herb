@@ -13,4 +13,5 @@ public class HerbDto {
     private List<Season> seasons;
     private String benefits;
     private List<Location> locations;
+    private String imageUrl;
 }

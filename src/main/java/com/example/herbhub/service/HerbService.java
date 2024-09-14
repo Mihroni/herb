@@ -1,13 +1,19 @@
 package com.example.herbhub.service;
 
 import com.example.herbhub.dto.HerbDto;
+import com.example.herbhub.dto.ImageDto;
 import com.example.herbhub.model.Herb;
 import com.example.herbhub.model.Location;
 import com.example.herbhub.repository.HerbRepository;
 import com.example.herbhub.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -25,6 +31,7 @@ public class HerbService {
         List<Location> locations = locationRepository.saveAll(dto.getLocations());
         result.setLocations(locations);
         result.setSeasons(dto.getSeasons());
+        result.setImageUrl(dto.getImageUrl());
         return herbRepository.save(result);
     }
 
@@ -52,5 +59,23 @@ public class HerbService {
 
     public Herb findByHerbId(String locationId) {
         return herbRepository.findByLocationsId(locationId);
+    }
+
+    public ImageDto saveImage(MultipartFile image) throws IOException {
+        // Ensure the upload directory exists
+        String imageUploadDirectory = "src/main//resources/static/uploads/";
+        Path uploadPath = Paths.get(imageUploadDirectory);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        // Save the file to the server
+        String fileName = image.getOriginalFilename();
+        Path filePath = uploadPath.resolve(fileName);
+        Files.write(filePath, image.getBytes());
+        String url = "/uploads/" + fileName;
+        ImageDto result = new ImageDto();
+        result.setImageUrl(url);
+        return result;
     }
 }
