@@ -7,6 +7,9 @@ import com.example.herbhub.model.Location;
 import com.example.herbhub.repository.HerbRepository;
 import com.example.herbhub.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.PathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +25,7 @@ public class HerbService {
 
     private final HerbRepository herbRepository;
     private final LocationRepository locationRepository;
+    private final String imageUploadDirectory = "C:/Users/Dell/Desktop/uploads/";
 
     public Herb create(HerbDto dto) {
         Herb result = new Herb();
@@ -63,7 +67,6 @@ public class HerbService {
 
     public ImageDto saveImage(MultipartFile image) throws IOException {
         // Ensure the upload directory exists
-        String imageUploadDirectory = "src/main//resources/static/uploads/";
         Path uploadPath = Paths.get(imageUploadDirectory);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -77,5 +80,23 @@ public class HerbService {
         ImageDto result = new ImageDto();
         result.setImageUrl(url);
         return result;
+    }
+
+    public Resource loadImageAsResource(String imageUrl) throws IOException {
+        String fileName = Paths.get(imageUrl).getFileName().toString();
+
+        Path imagePath = Paths.get(imageUploadDirectory).resolve(fileName).normalize();
+        Resource resource = new PathResource(imagePath);
+
+        if (resource.exists() && resource.isReadable()) {
+            return resource;
+        } else {
+            throw new IOException("Image not found or not readable");
+        }
+    }
+
+    public String getContentType(Path imagePath) throws IOException {
+        String contentType = Files.probeContentType(imagePath);
+        return (contentType != null) ? contentType : MediaType.IMAGE_JPEG_VALUE;
     }
 }

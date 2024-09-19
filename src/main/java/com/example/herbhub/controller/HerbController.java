@@ -4,9 +4,10 @@ import com.example.herbhub.dto.HerbDto;
 import com.example.herbhub.dto.ImageDto;
 import com.example.herbhub.model.Herb;
 import com.example.herbhub.service.HerbService;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,11 +17,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 @RestController
@@ -68,6 +69,27 @@ public class HerbController {
 
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    @GetMapping("/getImage")
+    public ResponseEntity<Resource> getImage(@RequestParam String imageUrl) {
+        try {
+            // Load the image resource using the service
+            Resource resource = herbService.loadImageAsResource(imageUrl);
+
+            // Get the file path to detect the content type
+            Path imagePath = resource.getFile().toPath();
+            String contentType = herbService.getContentType(imagePath);
+
+            // Return the image with appropriate content type and headers
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            e.printStackTrace();  // Log the error for debugging
+            return ResponseEntity.notFound().build();
         }
     }
 }
